@@ -242,7 +242,7 @@ const func = {
 
     // 計算
     /** 視聴者数の変化量 */
-    const dCount = yl.count - (count_ || 0);
+    const dCount = count_ == null ? 0 : yl.count - count_;
 
     /** 保存方式 */
     const isDelta = false;
