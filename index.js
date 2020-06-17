@@ -14,6 +14,7 @@
 const puppeteer = require('puppeteer');
 const fs = require('fs');
 const path = require('path');
+const readline = require('readline');
 
 /* ---------- config. ---------- */
 const executablePath =
@@ -190,7 +191,9 @@ const func = {
   const tc = async (selector) => {
     return await page.$eval(selector, (element) => element.textContent);
   };
-  for (;;) {
+
+  /* メインループ. */
+  for (let cnt = 0; ; cnt++) {
     // 取得
     const title = await page.$eval('title', (e) => e.textContent);
     const output = await page.$eval('.view-count', (e) => e.textContent);
@@ -300,7 +303,9 @@ const func = {
         // process.stdout.write('\n' + stdout);
         console.log(stdout);
       } else {
-        process.stdout.write('.');
+        const char = ['\\', '|', '/', '-'];
+        process.stdout.write(char[cnt % char.length]);
+        readline.cursorTo(process.stdout, 0);
       }
       func.appendLog(line);
     }
