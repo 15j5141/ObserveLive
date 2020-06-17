@@ -131,6 +131,11 @@ const func = {
 
   func.appendLog(url + ',' + titled);
 
+  func.appendLog(
+    '日付 時刻,同時視聴者数,delta視聴者数,deltaTime,高評価数,低評価数,新規メンバ数,合計スパチャ額'
+  );
+
+  /** チャット処理用 */
   const Chat = {
     members: [],
     paids: [],
