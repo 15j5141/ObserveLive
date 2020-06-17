@@ -193,18 +193,6 @@ const func = {
   for (;;) {
     // 取得
     const title = await page.$eval('title', (e) => e.textContent);
-
-    // 終了確認.
-    if (output.indexOf('視聴中') === -1 && output.indexOf('待機') === -1) {
-      console.log('break: output=' + output);
-      buffer = output;
-      break;
-    }
-    if (title !== titled) {
-      titled = title;
-      console.log('break: title=' + title);
-      break;
-    }
     const output = await page.$eval('.view-count', (e) => e.textContent);
     const liveState = await page.$eval(
       '#date > yt-formatted-string',
@@ -212,11 +200,18 @@ const func = {
         return element.textContent;
       }
     );
+
+    // 終了確認.
     if (
-      liveState.indexOf('配信開始') === -1 &&
-      liveState.indexOf('開始予定') === -1
+      title !== titled || // タイトルが変わったら.
+      !/視聴中|待機/.test(output) || // 再生数表記に変わったら.
+      !/プレミア公開|配信開始|開始予定/.test(liveState) // ライブの状態が過去の表記に変わったら.
     ) {
-      console.log('break: liveState=' + liveState);
+      console.log(
+        'break: output=' + output + ',title=' + title + ',State=' + liveState
+      );
+      buffer = output;
+      titled = title;
       break;
     }
 
