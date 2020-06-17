@@ -1,3 +1,4 @@
+/* ---------- define type. ---------- */
 /**
  * @typedef {object} YoutubeLive
  * @property {number} count 同時視聴者数
@@ -9,12 +10,15 @@
  * @property {string} time 取得時間
  */
 
+/* ---------- require. ---------- */
 const puppeteer = require('puppeteer');
 const fs = require('fs');
 const path = require('path');
 
+/* ---------- config. ---------- */
+const executablePath =
+  'C:\\Program Files (x86)\\Google\\Chrome Beta\\Application\\chrome.exe';
 let url = 'https://www.youtube.com/watch?v=okGKwpCJ6m4';
-
 // 実行時引数からURLを設定する.
 if (process.argv.length >= 3) {
   const arg = process.argv[2];
@@ -22,15 +26,13 @@ if (process.argv.length >= 3) {
     url = arg;
   }
 }
-
 const logName =
   url.replace(/https:\/\/www\.youtube\.com\/watch\?v=/, '') + '.txt';
+
+/* ---------- define function. ---------- */
+
 const func = {
   filename: 'log/' + logName,
-  getCount: () => {
-    const dom = document.querySelector('.view-count');
-    return dom == null ? 'null.' : dom.textContent;
-  },
 
   appendLog: (log) => {
     fs.appendFile(path.join(__dirname, func.filename), log + '\n', (error) => {
@@ -51,14 +53,6 @@ const func = {
     });
   },
 
-  aaa: () => {
-    const node = document.querySelectorAll('.view-count').item(0);
-    const observer = new MutationObserver(function (e) {
-      console.log(e);
-      window.onCustomEvent({ text: e.target.textContent });
-    });
-    observer.observe(node);
-  },
   /**
    * 0 ~ max の乱数
    * @param {number} max
@@ -67,6 +61,11 @@ const func = {
   rnd: (max) => {
     return Math.floor(Math.random() * Math.floor(max));
   },
+  /**
+   * スクリーンショット.
+   * @param {Page} page
+   * @param {string} path
+   */
   ss: async (page, path = 'screenshot.png') => {
     console.log('ss: ' + path);
     await page.screenshot({ path });
@@ -102,21 +101,15 @@ const func = {
     headless: true,
     devtools: false,
     slowMo: 0,
-    executablePath:
-      'C:\\Program Files (x86)\\Google\\Chrome Beta\\Application\\chrome.exe',
+    executablePath,
   });
   const page = await browser.newPage();
   // const page = (await browser.pages())[0];
   await page.setViewport({ width: 1920, height: 1080 });
-  // page.setUserAgent(ua);
-  // await page.emulate(iPhone);
 
-  // Define a window.onCustomEvent function on the page.
-  await page.exposeFunction('onCustomEvent', (e) => {
-    console.log(`${e.text}`);
-  });
-  await page.exposeFunction('consolelog', (e) => {
-    console.log('consolelog:', e);
+  // ページ内から window.consolelog() で出力できるようにする.
+  await page.exposeFunction('consolelog', (message) => {
+    console.log('consolelog:', message);
   });
 
   // 遷移.
@@ -126,18 +119,13 @@ const func = {
   console.log('loaded.');
   // await page.waitForSelector('.view-count');
   await page.waitFor(2000);
-  // const dom = await page.$('.view-count');
-  // console.log(dom);
-
-  // await page.evaluate( aaa );
-  // await page.waitFor(10000);
 
   let buffer = '';
+  /** 起動時ののタイトル */
   let titled = await page.$eval('title', (e) => {
-    // window.consolelog(e.textContent);
     return e.textContent;
   });
-  console.log(titled);
+  console.log(url, titled);
 
   let count_ = null;
   /** 前回の時刻 */
@@ -146,12 +134,6 @@ const func = {
   let yl_;
 
   func.appendLog(url + ',' + titled);
-  // page.on('load', async () => {
-  //   console.log('exit.');
-  //   await func.ss(page);
-  //   await browser.close();
-  //   process.exit();
-  // });
 
   const Chat = {
     members: [],
@@ -200,12 +182,15 @@ const func = {
     },
   };
 
+  /**
+   * textContent 取得ショートコード
+   * @param {string} selector
+   */
   const tc = async (selector) => {
     return await page.$eval(selector, (element) => element.textContent);
   };
   for (;;) {
     // 取得
-    const output = await page.$eval('.view-count', (e) => e.textContent);
     const title = await page.$eval('title', (e) => e.textContent);
 
     // 終了確認.
@@ -219,6 +204,7 @@ const func = {
       console.log('break: title=' + title);
       break;
     }
+    const output = await page.$eval('.view-count', (e) => e.textContent);
     const liveState = await page.$eval(
       '#date > yt-formatted-string',
       (element) => {
@@ -233,7 +219,7 @@ const func = {
       break;
     }
 
-    /** @type {YoutubeLive} YoutubeLive情報 */
+    /** @type {YoutubeLive} YoutubeLive 情報 */
     const yl = {
       count: (await tc('.view-count')).replace(/\D/g, ''),
       rate: {
@@ -336,10 +322,6 @@ const func = {
   }
 
   console.log('shutdown.');
-
-  console.log(titled, buffer);
   await func.ss(page);
-  // appendLog(output);
-
   await browser.close();
 })();
