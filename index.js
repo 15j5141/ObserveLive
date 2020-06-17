@@ -35,22 +35,18 @@ const func = {
   filename: 'log/' + logName,
 
   appendLog: (log) => {
-    fs.appendFile(path.join(__dirname, func.filename), log + '\n', (error) => {
-      if (error) {
-        console.log('err:', error);
-      } else {
-        // console.log('wrote log');
-      }
-    });
+    try {
+      fs.appendFileSync(path.join(__dirname, func.filename), log + '\n');
+    } catch (error) {
+      console.log('err:', error);
+    }
   },
   writeLog: (log) => {
-    fs.writeFile(path.join(__dirname, func.filename), log, (error) => {
-      if (error) {
-        console.log('err:', error);
-      } else {
-        console.log('wrote:', log);
-      }
-    });
+    try {
+      fs.writeFileSync(path.join(__dirname, func.filename), log);
+    } catch (error) {
+      console.log('err:', error);
+    }
   },
 
   /**
