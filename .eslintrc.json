@@ -1,0 +1,34 @@
+{
+    "env": {
+        "browser": true,
+        "es6": true,
+        "jquery": true,
+        "node": true
+    },
+    "extends": [
+        "plugin:compat/recommended",
+        "google",
+        "plugin:prettier/recommended"
+    ],
+    "globals": {
+        "Atomics": "readonly",
+        "SharedArrayBuffer": "readonly"
+    },
+    "parserOptions": {
+        "ecmaVersion": 2018,
+        "sourceType": "module"
+    },
+    "rules": {
+        "semi": "error",
+        "compat/compat": "error",
+        "no-undef": 2,
+        "no-unused-vars":"warn"
+    },
+    "plugins": [
+        "compat",
+        "jquery"
+    ],
+    "settings": {
+        "polyfills":[]
+    }
+}
