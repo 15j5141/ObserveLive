@@ -310,7 +310,7 @@ const func = {
       func.appendLog(line);
     }
     // 稀にスクショ.
-    if (func.rnd(2) === 1) {
+    if (func.rnd(2) === 1 && dCount !== 0) {
       await func.ss(page);
     }
     yl_ = yl;
