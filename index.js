@@ -179,6 +179,8 @@ const func = {
     /** @type {Array<Paid>} */
     paids: [],
     paidAmount: 0,
+    /** @type {Array<{id:string, text:string}>} */
+    chats: [],
     /**
      * 新旧メンバー・スパチャを取得する.
      * @param {HTMLIFrameElement} iframe
@@ -209,7 +211,19 @@ const func = {
           amount: element.querySelector('#purchase-amount').textContent,
         };
       });
-      return { members, paids };
+      // チャットから新旧チャットを取得する.
+      const chats = Array.from(
+        // doc.querySelectorAll('yt-live-chat-ticker-paid-message-item-renderer'),
+        doc.querySelectorAll(
+          'yt-live-chat-item-list-renderer>#contents #items>yt-live-chat-text-message-renderer'
+        )
+      ).map((element) => {
+        return {
+          id: element.id,
+          text: element.querySelector('#message').textContent,
+        };
+      });
+      return { members, paids, chats };
     },
     check: async () => {
       const obj = await page.$eval(
@@ -232,17 +246,29 @@ const func = {
         Chat.paids,
         (m1, m2) => m1.id === m2.id
       );
-      console.log(paids);
 
-      // 新規スパチャの差分を追加.
+      // 新規スパチャの差分を追加する.
       Chat.paids.push(...paids);
       // 決算.
       paids.forEach((paid) => {
-        // 日本円以外を0と計算.
+        // 日本円以外を0と計算する.
         const amount =
           paid.amount.indexOf('￥') !== -1 ? func.intval(paid.amount) : 0;
         Chat.paidAmount += amount;
       });
+
+      // チャットの差分を追加する.
+      const chats = func.arrayDiff(
+        Chat.chats,
+        obj.chats,
+        (m1, m2) => m1.id === m2.id
+      );
+      console.log(
+        chats.reduce((pre, cur) => {
+          return pre + ',' + cur.text;
+        }, 'chats:')
+      );
+      Chat.chats.push(...chats);
     },
     exchange: () => {},
   };
@@ -347,7 +373,9 @@ const func = {
         ',メンバー数:' +
         Chat.members.length +
         ',金額合計:' +
-        Chat.paidAmount;
+        Chat.paidAmount +
+        ',チャット数:' +
+        Chat.chats.length;
       const line =
         func.getDate(yl.time) + // 時間.
         ',' +
@@ -363,7 +391,9 @@ const func = {
         ',' +
         Chat.members.length +
         ',' +
-        Chat.paidAmount;
+        Chat.paidAmount +
+        ',' +
+        Chat.chats.length;
       time_ = yl.time;
       count_ = yl.count;
       if (dCount !== 0) {
@@ -385,6 +415,7 @@ const func = {
       // 再生されていたら止めて負荷軽減.
       if (!element.paused) element.pause();
     });
+
     // 待機
     await page.waitFor(5000);
   }
