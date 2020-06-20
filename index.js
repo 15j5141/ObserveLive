@@ -98,6 +98,25 @@ const func = {
   intval: (str) => {
     return parseInt('0' + str.replace(/\D/g, ''));
   },
+  /**
+   * 配列の差分(増加)取得する.
+   * @template T
+   * @param {Array<T>} array1
+   * @param {Array<T>} array2
+   * @param {Function} compareFunction
+   * @return {Array<T>}
+   */
+  arrayDiff: (array1, array2, compareFunction) => {
+    return array2.filter((obj1) => {
+      return !array1.some((obj2) => {
+        if (typeof compareFunction === 'function') {
+          return compareFunction(obj1, obj2);
+        } else {
+          return obj1 === obj2;
+        }
+      });
+    });
+  },
 };
 
 (async () => {
@@ -160,45 +179,63 @@ const func = {
     /** @type {Array<Paid>} */
     paids: [],
     paidAmount: 0,
-    /** @return {Document}*/
-    getIframe: async () => {
-      return await page.$eval('iframe.ytd-live-chat-frame', (element) => {
-        return element.contentDocument;
-      });
+    /**
+     * 新旧メンバー・スパチャを取得する.
+     * @param {HTMLIFrameElement} iframe
+     * @return {{members:Array<Member>, paids:Array<Paid>}}
+     */
+    getTicker: (iframe) => {
+      /** iframe から取得した document */
+      const doc = iframe.contentDocument;
+      // チャットから新旧メンバーを取得する.
+      const members = Array.from(
+        doc.querySelectorAll('yt-live-chat-ticker-sponsor-item-renderer'),
+        (element) => {
+          return {
+            id: element.id,
+          };
+        }
+      );
+      // チャットから新旧スパチャを取得する.
+      const paids = Array.from(
+        doc.querySelectorAll('yt-live-chat-ticker-paid-message-item-renderer'),
+        function (element) {
+          return {
+            id: element.id,
+            amount: element.getAttribute('aria-label'),
+          };
+        }
+      );
+      return { members, paids };
     },
     check: async () => {
-      const obj = await page.$eval('iframe.ytd-live-chat-frame', (element) => {
-        const doc = element.contentDocument;
-        const result = {
-          memberIDs: [],
-          paidIDs: [],
-          paidAmounts: [],
-        };
-        doc
-          .querySelectorAll('yt-live-chat-ticker-sponsor-item-renderer')
-          .forEach((member) => {
-            result.memberIDs.push(element.id);
-          });
-        doc
-          .querySelectorAll('yt-live-chat-ticker-paid-message-item-renderer')
-          .forEach((element) => {
-            result.paidIDs.push(element.id);
-            result.paidAmounts.push(
-              parseInt(element.getAttribute('aria-label').replace(/\D/g, ''))
-            );
-          });
-        return result;
-      });
-      // 新規メンバーを追加.
-      obj.memberIDs.forEach((id) => {
-        if (!Chat.members.includes(id)) Chat.members.push(id);
-      });
+      const obj = await page.$eval(
+        'iframe.ytd-live-chat-frame',
+        Chat.getTicker
+      );
+      // 新規メンバーの差分を追加.
+      Chat.members.push(
+        // obj.members と Chat.members の差分を検索する.
+        ...func.arrayDiff(
+          obj.members,
+          Chat.members,
+          (m1, m2) => m1.id === m2.id
+        )
+      );
+
+      // obj.paids と Chat.paids の差分を検索する.
+      const paids = func.arrayDiff(
+        obj.paids,
+        Chat.paids,
+        (m1, m2) => m1.id === m2.id
+      );
+      console.log(paids);
+
+      // 新規スパチャの差分を追加.
+      Chat.paids.push(...paids);
       // 決算.
-      obj.paidIDs.forEach((id, i) => {
-        if (!Chat.paids.includes(id)) {
-          Chat.paids.push(id);
-          Chat.paidAmount += obj.paidAmounts[i];
-        }
+      paids.forEach((paid) => {
+        Chat.paidAmount += func.intval(paid.amount);
       });
     },
   };
