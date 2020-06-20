@@ -101,14 +101,14 @@ const func = {
   /**
    * 配列の差分(増加)取得する.
    * @template T
-   * @param {Array<T>} array1
-   * @param {Array<T>} array2
+   * @param {Array<T>} beforeArray
+   * @param {Array<T>} AfterArray
    * @param {Function} compareFunction
    * @return {Array<T>}
    */
-  arrayDiff: (array1, array2, compareFunction) => {
-    return array2.filter((obj1) => {
-      return !array1.some((obj2) => {
+  arrayDiff: (beforeArray, AfterArray, compareFunction) => {
+    return AfterArray.filter((obj1) => {
+      return !beforeArray.some((obj2) => {
         if (typeof compareFunction === 'function') {
           return compareFunction(obj1, obj2);
         } else {
@@ -230,20 +230,21 @@ const func = {
         'iframe.ytd-live-chat-frame',
         Chat.getTicker
       );
-      // 新規メンバーの差分を追加.
+
+      // 新規メンバーの差分を追加する.
       Chat.members.push(
         // obj.members と Chat.members の差分を検索する.
         ...func.arrayDiff(
-          obj.members,
           Chat.members,
+          obj.members,
           (m1, m2) => m1.id === m2.id
         )
       );
 
       // obj.paids と Chat.paids の差分を検索する.
       const paids = func.arrayDiff(
-        obj.paids,
         Chat.paids,
+        obj.paids,
         (m1, m2) => m1.id === m2.id
       );
 
