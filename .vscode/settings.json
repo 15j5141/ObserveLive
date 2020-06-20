@@ -3,6 +3,7 @@
         "consolelog",
         "devtools",
         "domcontentloaded",
+        "intval",
         "khtml",
         "paids"
     ]

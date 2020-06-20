@@ -105,3 +105,4 @@ dist
 
 # Other
 package-lock.json
+/log

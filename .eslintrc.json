@@ -20,7 +20,7 @@
     },
     "rules": {
         "semi": "error",
-        "compat/compat": "error",
+        "compat/compat": "off",
         "no-undef": 2,
         "no-unused-vars":"warn"
     },

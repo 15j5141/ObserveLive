@@ -1,3 +1,4 @@
+// // @ts-check
 /* ---------- define type. ---------- */
 /**
  * @typedef {object} YoutubeLive
@@ -7,7 +8,7 @@
  * @property {number} rate.low 低評価数
  * @property {string} state 配信状態
  * @property {string} title タイトル
- * @property {string} time 取得時間
+ * @property {number} time 取得時間
  */
 
 /* ---------- require. ---------- */
@@ -72,7 +73,7 @@ const func = {
    * @param {number} milliSecond
    * @return {string}
    */
-  getDate(milliSecond) {
+  getDate: (milliSecond) => {
     if (milliSecond == null) milliSecond = Date.now();
     const date = new Date(milliSecond);
     return (
@@ -89,6 +90,13 @@ const func = {
       ':' +
       date.getSeconds()
     );
+  },
+  /**
+   * @param {string} str
+   * @return {number}
+   */
+  intval: (str) => {
+    return parseInt('0' + str.replace(/\D/g, ''));
   },
 };
 
@@ -138,7 +146,18 @@ const func = {
 
   /** チャット処理用 */
   const Chat = {
+    /**
+     * @typedef {Object} Member
+     * @property {string} id
+     */
+    /**
+     * @typedef {Object} Paid
+     * @property {string} id
+     * @property {string} amount
+     */
+    /** @type {Array<Member>} */
     members: [],
+    /** @type {Array<Paid>} */
     paids: [],
     paidAmount: 0,
     /** @return {Document}*/
@@ -220,13 +239,17 @@ const func = {
 
     /** @type {YoutubeLive} YoutubeLive 情報 */
     const yl = {
-      count: (await tc('.view-count')).replace(/\D/g, ''),
+      count: func.intval(await tc('.view-count')),
       rate: {
-        high: await tc(
-          'ytd-video-primary-info-renderer #info ytd-toggle-button-renderer:nth-child(1)>a>yt-formatted-string'
+        high: func.intval(
+          await tc(
+            'ytd-video-primary-info-renderer #info ytd-toggle-button-renderer:nth-child(1)>a>yt-formatted-string'
+          )
         ),
-        low: await tc(
-          'ytd-video-primary-info-renderer #info ytd-toggle-button-renderer:nth-child(2)>a>yt-formatted-string'
+        low: func.intval(
+          await tc(
+            'ytd-video-primary-info-renderer #info ytd-toggle-button-renderer:nth-child(2)>a>yt-formatted-string'
+          )
         ),
       },
       state: await tc(
