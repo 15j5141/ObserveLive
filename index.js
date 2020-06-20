@@ -235,9 +235,13 @@ const func = {
       Chat.paids.push(...paids);
       // 決算.
       paids.forEach((paid) => {
-        Chat.paidAmount += func.intval(paid.amount);
+        // 日本円以外を0と計算.
+        const amount =
+          paid.amount.indexOf('￥') !== -1 ? func.intval(paid.amount) : 0;
+        Chat.paidAmount += amount;
       });
     },
+    exchange: () => {},
   };
 
   /**
