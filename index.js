@@ -196,16 +196,19 @@ const func = {
           };
         }
       );
+
       // チャットから新旧スパチャを取得する.
       const paids = Array.from(
-        doc.querySelectorAll('yt-live-chat-ticker-paid-message-item-renderer'),
-        function (element) {
-          return {
-            id: element.id,
-            amount: element.getAttribute('aria-label'),
-          };
-        }
-      );
+        // doc.querySelectorAll('yt-live-chat-ticker-paid-message-item-renderer'),
+        doc.querySelectorAll(
+          'yt-live-chat-item-list-renderer>#contents #items>yt-live-chat-paid-message-renderer'
+        )
+      ).map((element) => {
+        return {
+          id: element.id,
+          amount: element.querySelector('#purchase-amount').textContent,
+        };
+      });
       return { members, paids };
     },
     check: async () => {
