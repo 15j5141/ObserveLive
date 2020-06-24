@@ -96,7 +96,7 @@ const func = {
    * @return {number}
    */
   intval: (str) => {
-    return parseInt('0' + str.replace(/\D/g, ''));
+    return parseInt('0' + str.replace(/[^0-9.]/g, ''));
   },
   /**
    * 配列の差分(増加)取得する.
