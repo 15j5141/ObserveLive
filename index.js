@@ -191,13 +191,16 @@ const func = {
       const doc = iframe.contentDocument;
       // チャットから新旧メンバーを取得する.
       const members = Array.from(
-        doc.querySelectorAll('yt-live-chat-ticker-sponsor-item-renderer'),
-        (element) => {
-          return {
-            id: element.id,
-          };
-        }
-      );
+        // doc.querySelectorAll('yt-live-chat-ticker-sponsor-item-renderer'),
+        doc.querySelectorAll(
+          'yt-live-chat-legacy-paid-message-renderer, yt-live-chat-membership-item-renderer'
+        )
+      ).map((element) => {
+        return {
+          id: element.id,
+        };
+      });
+      //
 
       // チャットから新旧スパチャを取得する.
       const paids = Array.from(
